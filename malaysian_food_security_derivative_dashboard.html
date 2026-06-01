@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomass Dynamics & Calculus Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- KaTeX for Beautiful Math Formula Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full">
+                        SFM: Food Security Malaysia
+                    </span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full">
+                        Calculus Applied f'(x)
+                    </span>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight mt-2 text-white">
+                    Sustainable Protein Biotechnology: BSFL Growth Dynamics
+                </h1>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button id="btnPlay" class="cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" id="playIcon">
+                        <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="playText">Animate Cycle</span>
+                </button>
+                <button id="btnReset" class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-4 py-2 rounded-lg transition-all text-sm border border-slate-700">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full flex-grow">
+        
+        <!-- Left Panel: Interactive controls, Math explanations, Live calculations -->
+        <div class="lg:col-span-4 space-y-6 flex flex-col">
+            
+            <!-- Parameters and Sliders -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-5">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-4 bg-emerald-500 rounded-sm"></span> Simulation Parameters
+                    </h2>
+                    <span class="text-xs text-slate-400">Model: Logistic Sigmoid</span>
+                </div>
+
+                <!-- Slider 1: Carrying Capacity -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-300 font-medium">Carrying Capacity ($L$)</span>
+                        <span class="text-emerald-400 font-bold code-font" id="valL">2500 g</span>
+                    </div>
+                    <input type="range" id="slideL" min="1000" max="5000" step="100" value="2500" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <p class="text-[11px] text-slate-400">Max limit of fresh larval biomass supported by the standard 1kg food-waste substrate tray.</p>
+                </div>
+
+                <!-- Slider 2: Growth Speed Coefficient -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-300 font-medium">Growth Rate Constant ($k$)</span>
+                        <span class="text-emerald-400 font-bold code-font" id="valK">0.45</span>
+                    </div>
+                    <input type="range" id="slideK" min="0.2" max="0.8" step="0.05" value="0.45" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <p class="text-[11px] text-slate-400">Impact of metabolic speed. Higher values denote ideal thermal & humidity controls ($30^\circ\text{C}$, $70\%$ RH).</p>
+                </div>
+
+                <!-- Slider 3: Inflection Point -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-300 font-medium">Inflection Point ($t_0$)</span>
+                        <span class="text-emerald-400 font-bold code-font" id="valT0">Day 10</span>
+                    </div>
+                    <input type="range" id="slideT0" min="5" max="15" step="1" value="10" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <p class="text-[11px] text-slate-400">The day when growth transitions from acceleration to deceleration. Theoretically the mathematically perfect harvest day.</p>
+                </div>
+            </div>
+
+            <!-- Mathematical Core -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-3.5 bg-blue-500 rounded-sm"></span> The Applied Mathematics
+                </h3>
+                
+                <div class="space-y-3 text-xs leading-relaxed">
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+                        <p class="text-blue-400 font-semibold mb-1">Cumulative Biomass Yield Curve:</p>
+                        <div class="my-2 text-center text-sm">
+                            $$f(t) = \frac{L}{1 + e^{-k(t - t_0)}}$$
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+                        <p class="text-emerald-400 font-semibold mb-1">First Derivative (Growth Velocity):</p>
+                        <div class="my-2 text-center text-sm">
+                            $$f'(t) = \frac{L \cdot k \cdot e^{-k(t - t_0)}}{\left(1 + e^{-k(t - t_0)}\right)^2}$$
+                        </div>
+                        <p class="text-[10px] text-slate-400">Derived using Chain and Quotient rules. This outputs the instantaneous biological yield accumulation ($g/\text{day}$).</p>
+                    </div>
+
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+                        <p class="text-purple-400 font-semibold mb-1">Tangent Line Formula at Day $c$:</p>
+                        <div class="my-2 text-center text-[11px]">
+                            $$y = f'(c) \cdot (t - c) + f(c)$$
+                        </div>
+                        <p class="text-[10px] text-slate-400">The derivative $f'(c)$ represents the precise geometric slope of the tangent line touching the biomass curve at that specific millisecond.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Panel: Dual-Axis Analytics Canvas -->
+        <div class="lg:col-span-8 space-y-6 flex flex-col justify-between">
+            
+            <!-- Graph Visualizer Container -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex-grow flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="w-2.5 h-4 bg-teal-500 rounded-sm"></span> Interactive Analytical Canvas
+                        </h2>
+                        <p class="text-xs text-slate-400">Move your cursor/touch over the chart or drag the parameter sliders to observe physical tangent tracking.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-slate-400 cursor-pointer flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                            <input type="checkbox" id="checkTangent" checked class="rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer">
+                            Display Tangent Line $f'(t)$
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Chart Wrapper -->
+                <div class="relative w-full flex-grow min-h-[350px] md:min-h-[420px] bg-slate-950/40 rounded-xl border border-slate-800/60 p-2">
+                    <canvas id="analyticalChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Dynamic Telemetry HUD -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+                    <div class="text-xs text-slate-400 font-medium">Timeline Position</div>
+                    <div id="hudDay" class="text-2xl font-bold text-white mt-1">Day 0.0</div>
+                </div>
+                
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-x-0 bottom-0 h-1 bg-cyan-500"></div>
+                    <div class="text-xs text-slate-400 font-medium">Biomass Yield $f(t)$</div>
+                    <div id="hudBiomass" class="text-2xl font-bold text-cyan-400 mt-1">0.0 g</div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-x-0 bottom-0 h-1 bg-emerald-500"></div>
+                    <div class="text-xs text-slate-400 font-medium">Instant Growth Velocity $f'(t)$</div>
+                    <div id="hudRate" class="text-2xl font-bold text-emerald-400 mt-1">0.0 g/day</div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                    <div class="absolute inset-x-0 bottom-0 h-1 bg-amber-500"></div>
+                    <div class="text-xs text-slate-400 font-medium">Agronomic State Evaluation</div>
+                    <div id="hudStatus" class="text-sm font-semibold text-amber-400 mt-2 truncate">Starting Inoculation</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Detailed Explanation Section -->
+    <section class="max-w-7xl mx-auto p-4 md:p-6 w-full grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-800 mt-4 bg-slate-950/80">
+        <div class="space-y-2">
+            <h4 class="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                <span>①</span> Lag Phase (Days 0 - 5)
+            </h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                Larvae adjust to feed substrate in this initial period. The derivative value $f'(t)$ is low ($< 50\text{ g/day}$), representing slow weight accretion as cellular setup dominates.
+            </p>
+        </div>
+        <div class="space-y-2">
+            <h4 class="text-sm font-bold text-cyan-400 flex items-center gap-1.5">
+                <span>②</span> Inflection Phase (Days 8 - 12)
+            </h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                The peak metabolic surge. Larvae consume vast feed volumes. The derivative curve hits its global absolute maximum value precisely at Day $t_0$. Optimal nutritional conversion metrics occur here.
+            </p>
+        </div>
+        <div class="space-y-2">
+            <h4 class="text-sm font-bold text-amber-400 flex items-center gap-1.5">
+                <span>③</span> Deceleration & Prepupae (Days 15 - 20)
+            </h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                Biomass stabilizes as larvae cease feeding and prepare for pupation. The derivative $f'(t)$ drops back towards zero, indicating that holding larvae longer yields diminishing returns.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer Area -->
+    <footer class="border-t border-slate-900 bg-slate-950/90 py-6 px-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Universiti Malaysia Agro-technology & Food Security Lab Module</p>
+            <p>Made with high precision math engines & fully responsive rendering layouts</p>
+        </div>
+    </footer>
+
+    <!-- Charting & Mathematical Script Engine -->
+    <script>
+        // --- 1. Global Setup & Reactive Values ---
+        let L = 2500;   // Carrying capacity (g)
+        let k = 0.45;   // Growth velocity constant
+        let t0 = 10;    // Inflection day
+        
+        let currentDayPointer = 10; // Tracker index for calculations and tangent lines
+        let animationFrameId = null;
+        let isAnimating = false;
+        let playDirection = 1;
+
+        // Generate dense data matrices for rendering ultra-smooth high-definition charts
+        const sampleResolution = 100; // number of steps from Day 0 to 20
+        const maxDays = 20;
+        
+        function generateTimeSteps() {
+            const arr = [];
+            for (let i = 0; i <= sampleResolution; i++) {
+                arr.push((maxDays / sampleResolution) * i);
+            }
+            return arr;
+        }
+        
+        const daysArray = generateTimeSteps();
+
+        // --- 2. Biological Formula Functions ---
+        // f(t) = Cumulative weight
+        function computeBiomass(t) {
+            return L / (1 + Math.exp(-k * (t - t0)));
+        }
+
+        // f'(t) = Cumulative weight growth derivative
+        function computeDerivative(t) {
+            const exponent = -k * (t - t0);
+            const expTerm = Math.exp(exponent);
+            return (L * k * expTerm) / Math.pow(1 + expTerm, 2);
+        }
+
+        // Tangent line linear equation: y = f'(c)*(x - c) + f(c)
+        function computeTangentValue(x, c) {
+            const slope = computeDerivative(c);
+            const y_intercept = computeBiomass(c);
+            return slope * (x - c) + y_intercept;
+        }
+
+        // Evaluating status strings based on standard tropical biological constraints
+        function evaluateBiostate(t, fVal, dVal) {
+            if (t < 5) return "Starting Inoculation (Lag)";
+            if (t >= 5 && t < t0 - 1) return "Accelerating Growth Phase";
+            if (Math.abs(t - t0) <= 0.8) return "Max Assimilation Rate (Harvest Peak)";
+            if (t > t0 + 1 && t < 15) return "Decelerating Maturation Phase";
+            return "Prepupae Stage (Metabolic Dormancy)";
+        }
+
+        // --- 3. UI Element Dynamic Linking ---
+        const slideL = document.getElementById('slideL');
+        const slideK = document.getElementById('slideK');
+        const slideT0 = document.getElementById('slideT0');
+        
+        const valL = document.getElementById('valL');
+        const valK = document.getElementById('valK');
+        const valT0 = document.getElementById('valT0');
+
+        const hudDay = document.getElementById('hudDay');
+        const hudBiomass = document.getElementById('hudBiomass');
+        const hudRate = document.getElementById('hudRate');
+        const hudStatus = document.getElementById('hudStatus');
+
+        const checkTangent = document.getElementById('checkTangent');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnReset = document.getElementById('btnReset');
+        const playIcon = document.getElementById('playIcon');
+        const playText = document.getElementById('playText');
+
+        // --- 4. Chart.js Implementation ---
+        const ctx = document.getElementById('analyticalChart').getContext('2d');
+        
+        // Define clean custom gradient styling to give visual luxury depth
+        const cyanGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        cyanGradient.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+        cyanGradient.addColorStop(1, 'rgba(6, 182, 212, 0.00)');
+
+        const analyticalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: daysArray,
+                datasets: [
+                    {
+                        label: 'Cumulative Biomass f(t) (g)',
+                        data: [],
+                        borderColor: '#06b6d4',
+                        backgroundColor: cyanGradient,
+                        borderWidth: 3.5,
+                        pointRadius: 0,
+                        fill: true,
+                        yAxisID: 'yBiomass',
+                        tension: 0.1
+                    },
+                    {
+                        label: "Instantaneous Growth Rate f'(t) (g/day)",
+                        data: [],
+                        borderColor: '#10b981',
+                        borderWidth: 2.5,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yRate',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Dynamic Tangent Line',
+                        data: [],
+                        borderColor: '#f43f5e',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yBiomass',
+                        hidden: false
+                    },
+                    {
+                        label: 'Selected Day Indicator',
+                        data: [],
+                        borderColor: '#ffffff',
+                        backgroundColor: '#ffffff',
+                        borderWidth: 0,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#ffffff',
+                        showLine: false,
+                        yAxisID: 'yBiomass'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#94a3b8',
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
+                        }
+                    },
+                    tooltip: {
+                        enabled: false // Custom HTML updates below replace default tooltips for clean tracking
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: 0,
+                        max: maxDays,
+                        title: {
+                            display: true,
+                            text: 'Larval Development Timeline (t, Days)',
+                            color: '#94a3b8',
+                            font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' }
+                        },
+                        grid: { color: '#1e293b' },
+                        ticks: {
+                            color: '#64748b',
+                            stepSize: 2
+                        }
+                    },
+                    yBiomass: {
+                        type: 'linear',
+                        position: 'left',
+                        min: 0,
+                        max: 5500,
+                        title: {
+                            display: true,
+                            text: 'Larvae Cumulative Biomass (g)',
+                            color: '#06b6d4',
+                            font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' }
+                        },
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#64748b' }
+                    },
+                    yRate: {
+                        type: 'linear',
+                        position: 'right',
+                        min: 0,
+                        max: 1100,
+                        title: {
+                            display: true,
+                            text: "Growth Rate f'(t) (g/day)",
+                            color: '#10b981',
+                            font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' }
+                        },
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#64748b' }
+                    }
+                },
+                onHover: (event, activeElements) => {
+                    // Hover dynamics to control tangent points interactively with user pointer
+                    if (!isAnimating && activeElements.length > 0) {
+                        const chartAreaX = event.x;
+                        const dataValueX = analyticalChart.scales.x.getValueForPixel(chartAreaX);
+                        if (dataValueX >= 0 && dataValueX <= maxDays) {
+                            currentDayPointer = dataValueX;
+                            updateDashboardMetrics();
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- 5. Mathematical Sync Updates ---
+        function updateDashboardMetrics() {
+            // Recalculate raw datasets with safe boundary limits
+            const biomassDataset = [];
+            const rateDataset = [];
+            const tangentDataset = [];
+
+            daysArray.forEach(t => {
+                biomassDataset.push({x: t, y: computeBiomass(t)});
+                rateDataset.push({x: t, y: computeDerivative(t)});
+                tangentDataset.push({x: t, y: computeTangentValue(t, currentDayPointer)});
+            });
+
+            // Update main structural datasets
+            analyticalChart.data.datasets[0].data = biomassDataset;
+            analyticalChart.data.datasets[1].data = rateDataset;
+            
+            // Toggle visibility parameters of mathematical elements
+            const showTangent = checkTangent.checked;
+            analyticalChart.setDatasetVisibility(2, showTangent);
+            
+            if (showTangent) {
+                // Ensure tangent line restricts itself strictly near the focal analysis area
+                const tangentWindowData = tangentDataset.map(pt => {
+                    const diff = Math.abs(pt.x - currentDayPointer);
+                    // Filter tangent length to make it look visually stunning rather than going off screen
+                    if (diff > 4) return {x: pt.x, y: null};
+                    return pt;
+                });
+                analyticalChart.data.datasets[2].data = tangentWindowData;
+            }
+
+            // Highlighting point target
+            const targetY = computeBiomass(currentDayPointer);
+            analyticalChart.data.datasets[3].data = [{x: currentDayPointer, y: targetY}];
+
+            // Correct dynamic scaling updates based on L
+            analyticalChart.options.scales.yBiomass.max = Math.ceil((L * 1.1) / 500) * 500;
+            const maxRateCalculated = (L * k) / 4;
+            analyticalChart.options.scales.yRate.max = Math.ceil((maxRateCalculated * 1.2) / 100) * 100;
+
+            analyticalChart.update('none');
+
+            // Render live text labels in UI panels
+            const rawBiomassValue = computeBiomass(currentDayPointer);
+            const rawRateValue = computeDerivative(currentDayPointer);
+            
+            hudDay.innerText = `Day ${currentDayPointer.toFixed(1)}`;
+            hudBiomass.innerText = `${rawBiomassValue.toFixed(1)} g`;
+            hudRate.innerText = `${rawRateValue.toFixed(1)} g/day`;
+            
+            const currentStatus = evaluateBiostate(currentDayPointer, rawBiomassValue, rawRateValue);
+            hudStatus.innerText = currentStatus;
+
+            // Highlight state color
+            if (currentStatus.includes("Harvest")) {
+                hudStatus.className = "text-sm font-semibold text-emerald-400 mt-2 truncate animate-pulse";
+            } else if (currentStatus.includes("Accelerating")) {
+                hudStatus.className = "text-sm font-semibold text-cyan-400 mt-2 truncate";
+            } else if (currentStatus.includes("Dormancy")) {
+                hudStatus.className = "text-sm font-semibold text-amber-500 mt-2 truncate";
+            } else {
+                hudStatus.className = "text-sm font-semibold text-slate-400 mt-2 truncate";
+            }
+        }
+
+        // --- 6. Controls Sync Bindings ---
+        function handleSlidersInput() {
+            L = parseFloat(slideL.value);
+            k = parseFloat(slideK.value);
+            t0 = parseInt(slideT0.value);
+
+            valL.innerText = `${L} g`;
+            valK.innerText = k.toFixed(2);
+            valT0.innerText = `Day ${t0}`;
+
+            updateDashboardMetrics();
+        }
+
+        [slideL, slideK, slideT0].forEach(slider => {
+            slider.addEventListener('input', handleSlidersInput);
+        });
+
+        checkTangent.addEventListener('change', updateDashboardMetrics);
+
+        // --- 7. Timeline Loop Frame Animation Engine ---
+        function frameIterationStep() {
+            if (!isAnimating) return;
+
+            // Step speed adjustments
+            currentDayPointer += 0.08 * playDirection;
+
+            if (currentDayPointer >= maxDays) {
+                currentDayPointer = maxDays;
+                playDirection = -1; // Bounce backwards for circular loop performance
+            } else if (currentDayPointer <= 0) {
+                currentDayPointer = 0;
+                playDirection = 1;
+            }
+
+            updateDashboardMetrics();
+            animationFrameId = requestAnimationFrame(frameIterationStep);
+        }
+
+        function toggleAnimationControl() {
+            if (isAnimating) {
+                // Pause sequence
+                isAnimating = false;
+                cancelAnimationFrame(animationFrameId);
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />`;
+                playText.innerText = "Animate Cycle";
+                btnPlay.className = "cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-emerald-500/20";
+            } else {
+                // Play sequence
+                isAnimating = true;
+                playDirection = 1;
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75.75v12a.75.75 0 0 1-1.5 0v-12a.75.75 0 0 1 .75-.75Zm7.5 0a.75.75 0 0 1 .75.75v12a.75.75 0 0 1-1.5 0v-12a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />`;
+                playText.innerText = "Pause Animation";
+                btnPlay.className = "cursor-pointer bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-amber-500/20";
+                frameIterationStep();
+            }
+        }
+
+        btnPlay.addEventListener('click', toggleAnimationControl);
+
+        btnReset.addEventListener('click', () => {
+            isAnimating = false;
+            cancelAnimationFrame(animationFrameId);
+            playIcon.innerHTML = `<path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />`;
+            playText.innerText = "Animate Cycle";
+            btnPlay.className = "cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-emerald-500/20";
+            
+            // Revert configuration settings back to defaults
+            L = 2500;
+            k = 0.45;
+            t0 = 10;
+            currentDayPointer = 10;
+
+            slideL.value = 2500;
+            slideK.value = 0.45;
+            slideT0.value = 10;
+
+            valL.innerText = "2500 g";
+            valK.innerText = "0.45";
+            valT0.innerText = "Day 10";
+
+            updateDashboardMetrics();
+        });
+
+        // Safe Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            // Safe rendering execution of KaTeX when elements are fully present
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+            updateDashboardMetrics();
+        });
+    </script>
+</body>
+</html>
